@@ -1,0 +1,25 @@
+name: CI/CD payment-api
+on: { push: { branches: ['**'] } }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres: { image: postgres:15, ports: ['5432:5432'] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+  build:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/build-push-action@v5
+        with: { push: true, tags: ghcr.io/${{ github.repository }}:latest }
+  deploy:
+    needs: build
+    environment: production   # ← reviewers requis
+    runs-on: ubuntu-latest
+    steps: [{ run: ./scripts/deploy.sh }]
