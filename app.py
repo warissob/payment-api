@@ -1,18 +1,14 @@
-from flask import Flask
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
 @app.route("/")
-def accueil():
-    return "Bienvenue sur Payment API"
+def home():
+    return jsonify({"message": "Payment API OK"})
 
-@app.route("/paiement")
-def paiement():
-    return "Paiement accepté"
-
-@app.route("/solde")
-def solde():
-    return "Solde disponible"
+@app.route("/health")
+def health():
+    return jsonify({"status": "UP"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
