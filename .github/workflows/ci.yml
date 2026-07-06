@@ -1,25 +1,59 @@
-name: CI/CD payment-api
-on: { push: { branches: ['**'] } }
+name: CI/CD Payment API
+
+on:
+  push:
+    branches:
+      - "**"
+
 jobs:
+
   test:
     runs-on: ubuntu-latest
+
     services:
-      postgres: { image: postgres:15, ports: ['5432:5432'] }
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - run: pip install -r requirements.txt
-      - run: pytest -q
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: |
+          pip install -r requirements.txt
+
+      - name: Lancer les tests
+        run: pytest -q
+
   build:
     needs: test
+
     if: github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
+
     steps:
-      - uses: docker/build-push-action@v5
-        with: { push: true, tags: ghcr.io/${{ github.repository }}:latest }
+      - uses: actions/checkout@v4
+
+      - name: Construire l'image Docker
+        run: |
+          docker build -t payment-api .
+
   deploy:
     needs: build
-    environment: production   # ← reviewers requis
+
+    if: github.ref == 'refs/heads/main'
+
+    environment: production
+
     runs-on: ubuntu-latest
-    steps: [{ run: ./scripts/deploy.sh }]
+
+    steps:
+      - name: Déploiement
+        run: |
+          echo "Déploiement en production"
